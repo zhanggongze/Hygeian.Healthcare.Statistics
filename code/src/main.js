@@ -15,7 +15,15 @@ import "swiper/css/swiper.css";
 
 import ECharts from 'vue-echarts'
 import 'echarts/lib/chart/line'
+import "echarts/lib/chart/bar";
 import 'echarts/lib/chart/radar'
+
+// 在入口文件中（main.js），导入组件库
+import vueHashCalendar from 'vue-hash-calendar'
+// 引入组件CSS样式
+import 'vue-hash-calendar/lib/vue-hash-calendar.css'
+// 注册组件库
+Vue.use(vueHashCalendar)
 
 Vue.component('chart', ECharts)
 

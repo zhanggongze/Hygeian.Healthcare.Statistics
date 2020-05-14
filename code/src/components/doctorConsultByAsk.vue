@@ -10,29 +10,38 @@
     <header>
       <div class="title">按医生统计图文咨询人数</div>
       <div class="selectList">
-        <div class="item">
+        <div class="item" @click="showSelect('day')">
           <p>昨日&nbsp;</p>
           <div class="jt"></div>
         </div>
-        <div class="item">
+        <div class="item" @click="showSelect('form')">
           <p>区域全部医院区域全&nbsp;</p>
           <div class="jt"></div>
         </div>
       </div>
     </header>
 
-    <div class="select">
-      <p>昨日</p>
-      <p>最近7天</p>
-      <p>最近7天</p>
-      <div class="btn">
-        <p>开始时间</p>&nbsp;-&nbsp;
-        <p>结束时间</p>
-        <p class="sub">确定</p>
+    <div class="select" v-if="isShowSelect">
+      <div v-if="searchType==='day'">
+        <p>昨日</p>
+        <p>最近7天</p>
+        <p>最近7天</p>
+      </div>
+      <div v-if="searchType==='form'">
+        <p>全部</p>
+        <p>其他</p>
+        <p>运营A</p>
+      </div>
+      <div class="btn" v-if="searchType==='day'">
+        <p @click="showCalendarDialog('start')">{{startDate}}</p>&nbsp;--&nbsp;
+        <p @click="showCalendarDialog('end')">{{endDate}}</p>
+        <p class="sub" @click="submitSearch()">确定</p>
       </div>
     </div>
 
     <section class="charts">
+      <chart style="width:100%" ref="chart1" :options="orgOptions" :auto-resize="true"></chart>
+
       <div class="tt">
         <p class="p1">2020-05-01至2020-05-07</p>
         <p class="p2">
@@ -44,7 +53,7 @@
         <table>
           <thead>
             <th>日期</th>
-            <th>新增建档数</th>
+            <th>{{thTitle}}</th>
           </thead>
           <tbody>
             <tr>
@@ -55,28 +64,43 @@
               <td>2</td>
               <td>200</td>
             </tr>
-            <tr>
-              <td>1</td>
-              <td>1</td>
-            </tr>
-            <tr>
-              <td>2</td>
-              <td>2</td>
-            </tr>
           </tbody>
         </table>
       </div>
     </section>
+
+    <div @click="isShowSelect=false" class="bg" v-if="isShowSelect"></div>
+
+    <vue-hash-calendar
+      ref="picker"
+      model="dialog"
+      :visible.sync="isShowCalendar"
+      :default-datetime="defaultDatetime"
+      :is-show-action="true"
+      format="YY/MM/DD"
+      lang="CN"
+      @confirm="dateConfirm"
+    ></vue-hash-calendar>
   </section>
 </template>
 
 <script>
 import axios from "axios";
+import prodEnv from "../../config/dev.env";
+
 export default {
   name: "doctorConsultByAsk",
   data() {
     return {
-      data: ""
+      isShowCalendar: false, // 是否显示弹窗
+      defaultDatetime: new Date(),
+      dateType: "",
+      startDate: "开始时间",
+      endDate: "结束时间",
+      isShowSelect: false,
+      searchType: "",
+      orgOptions: {},
+      thTitle: ""
     };
   },
   filters: {
@@ -93,10 +117,61 @@ export default {
   },
   created: function() {},
   onLoad(options) {},
-  mounted() {},
+  mounted() {
+    console.log(prodEnv);
+
+    this.api();
+
+    this.thTitle = this.$route.params.title;
+    this.orgOptions = {
+      xAxis: {
+        type: "category",
+        data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+      },
+      yAxis: {
+        type: "value"
+      },
+      series: [
+        {
+          data: [820, 932, 901, 934, 1290, 1330, 1320],
+          type: "line",
+          smooth: true
+        }
+      ]
+    };
+  },
   methods: {
-    aFn() {
-      console.log(123);
+    api() {
+      let u = prodEnv.api + "services/report/api/v1/host/yesterdayKPIReport";
+      axios
+        .post(u, {})
+        .then(res => {
+          console.log(res);
+        })
+        .catch(er => {
+          console.log(res);
+        });
+    },
+    showCalendarDialog(type) {
+      // 显示日历
+      this.isShowCalendar = true;
+      this.dateType = type;
+    },
+    dateConfirm(date) {
+      // 点击确认按钮触发
+      console.log(date, "confirm");
+      if (this.dateType === "start") {
+        this.startDate = date;
+      } else {
+        this.endDate = date;
+      }
+    },
+    submitSearch() {
+      this.isShowSelect = false;
+    },
+    showSelect(type) {
+      this.isShowSelect = true;
+      this.searchType = type;
     }
   }
 };
@@ -105,6 +180,7 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss" scoped>
 // css
+
 .jt {
   width: 1rem;
   height: 1rem;
@@ -117,6 +193,8 @@ export default {
 header {
   background-color: #fff;
   padding: 2.25rem 1.25rem 1.25rem 1.25rem;
+  position: relative;
+  z-index: 1;
 
   .title {
     font-size: 2.25rem;
@@ -139,7 +217,18 @@ header {
     }
   }
 }
+.bg {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+  background-color: rgba($color: #000000, $alpha: 0.5);
+}
 .select {
+  z-index: 1;
+  width: 100%;
+  position: absolute;
   background-color: #fff;
   border-top: 1px solid #e1e1e1;
   p {
@@ -152,27 +241,33 @@ header {
     }
   }
   .btn {
-    padding: .9375rem;
-      color: #999;
+    padding: 0.9375rem;
+    color: #999;
     p {
       display: inline-block;
       font-size: 1.75rem;
       color: #999;
-      padding: 1.375rem 3.5rem;
-      background-color:#eee;
+      padding: 1.375rem 2.2rem;
+      background-color: #eee;
       border: none;
       border-radius: 2.1875rem;
-      &:active{
+      &:active {
         background-color: rgb(226, 226, 226);
       }
     }
-    .sub{
+    .sub {
       margin-left: 1.25rem;
-      border-radius: .625rem;
+      border-radius: 0.625rem;
       color: #fff;
-      background:linear-gradient(90deg,rgba(64,139,241,1),rgba(34,172,251,1));
-      &:active{
-      background:linear-gradient(90deg,rgb(60, 129, 226),rgb(32, 159, 233));
+      float: right;
+      padding: 1.375rem 3.5rem;
+      background: linear-gradient(
+        90deg,
+        rgba(64, 139, 241, 1),
+        rgba(34, 172, 251, 1)
+      );
+      &:active {
+        background: linear-gradient(90deg, rgb(32, 159, 233) rgb(60, 129, 226));
       }
     }
   }
@@ -181,7 +276,7 @@ header {
 .charts {
   margin-top: 1.25rem;
   background-color: #fff;
-  padding: 1.875rem;
+  padding: 0 1.875rem 1.875rem 1.875rem;
 
   .tt {
     display: flex;

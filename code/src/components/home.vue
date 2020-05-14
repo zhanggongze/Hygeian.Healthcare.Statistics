@@ -8,40 +8,63 @@
 <template>
   <section class="container">
     <div class="itemsList">
-      <div class="item" @click="toDoctorConsultByAsk()">
+      <div class="item" @click="toDoctorConsultByAsk('新增注册数')">
         <div class="iL">
-          <span>新增注册数</span>
+          <div class="ft">
+            <p class="p1">{{yesterdayCreated}}</p>
+            <p class="p2" :class="compare>0 ? 'up' : 'down' ">较前日{{compare}}</p>
+          </div>
+          <div class="tt">
+            <span>新增注册数</span>
+          </div>
         </div>
         <div class="iR">
-          <p class="p1">56</p>
-          <p class="p2">较前日+12</p>
+          <div class="jt"></div>
         </div>
       </div>
-      <div class="item" @click="toDoctorIM()">
+
+      <div class="item" @click="toDoctorConsultByAsk('新增建档数')">
         <div class="iL">
-          <span>新增建档数</span>
+          <div class="ft">
+            <p class="p1">{{hYesterdayCreated}}</p>
+            <p class="p2" :class="hCompare<=0 ? 'down' : 'up' ">较前日{{hCompare}}</p>
+          </div>
+          <div class="tt">
+            <span>新增建档数</span>
+          </div>
         </div>
         <div class="iR">
-          <p class="p1">56</p>
-          <p class="p2">较前日+12</p>
+          <div class="jt"></div>
         </div>
       </div>
-      <div class="item" @click="toDayConsultByAsk()">
+
+      <div class="item" @click="toDoctorConsultByAsk('累计注册数')">
         <div class="iL">
-          <span>累计注册数</span>
+          <div class="ft">
+            <p class="p1">{{totalCreated}}</p>
+            <!-- <p class="p2 up">较前日+12</p> -->
+          </div>
+          <div class="tt">
+            <span>累计注册数</span>
+          </div>
         </div>
         <div class="iR">
-          <p class="p1">56</p>
-          <p class="p2">较前日+12</p>
+          <div class="jt"></div>
         </div>
       </div>
-      <div class="item" @click="toDayIM()">
+
+      <div class="item" @click="toDoctorConsultByAsk('累计建档数')">
         <div class="iL">
-          <span>累计建档数</span>
+          <div class="ft">
+            <p class="p1">{{hTotalCreated}}</p>
+            <!-- <p class="p2 down">较前日-12</p> -->
+          </div>
+          <div class="tt">
+            <span>累计建档数</span>
+          </div>
         </div>
         <div class="iR">
-          <p class="p1">56</p>
-          <p class="p2">较前日+12</p>
+          <div class="jt"></div>
         </div>
       </div>
     </div>
@@ -50,11 +73,22 @@
 
 <script>
 import axios from "axios";
+import prodEnv from "../../config/dev.env";
+
 export default {
   name: "home",
   data() {
     return {
-      data: ""
+      data: "",
+      yesterdayCreated: "",
+      totalCreated: "",
+      theDayFeforeYesterdayCreated: "",
+      compare: "",
+
+      hTheDayFeforeYesterdayCreated: "",
+      hTotalCreated: "",
+      hYesterdayCreated: "",
+      hCompare: ""
     };
   },
   filters: {
@@ -71,22 +105,41 @@ export default {
   },
   created: function() {},
   onLoad(options) {},
-  mounted() {},
+  mounted() {
+    this.api();
+  },
   methods: {
+    api() {
+      let u = prodEnv.api + "services/report/api/v1/host/yesterdayKPIReport";
+      axios
+        .post(u, {})
+        .then(res => {
+          let item = res.data;
+
+          this.yesterdayCreated = item.customerReport.yesterdayCreated;
+          this.totalCreated = item.customerReport.totalCreated;
+          this.theDayFeforeYesterdayCreated =
+            item.customerReport.theDayFeforeYesterdayCreated;
+          this.compare =
+            this.yesterdayCreated - this.theDayFeforeYesterdayCreated;
+
+          this.hTheDayFeforeYesterdayCreated =
+            item.healthRecordReport.theDayFeforeYesterdayCreated;
+          this.hTotalCreated = item.healthRecordReport.totalCreated;
+          this.hYesterdayCreated = item.healthRecordReport.yesterdayCreated;
+          this.hCompare =
+            this.hYesterdayCreated - this.hTheDayFeforeYesterdayCreated;
+        })
+        .catch(er => {
+          console.log(er);
+        });
+    },
     aFn() {
       console.log(123);
     },
-    toDoctorConsultByAsk() {
-      this.$router.push({ path: "/doctorConsultByAsk" });
-    },
-    toDoctorIM() {
-      this.$router.push({ path: "/doctorIM" });
-    },
-    toDayConsultByAsk() {
-      this.$router.push({ path: "/dayConsultByAsk" });
-    },
-    toDayIM() {
-      this.$router.push({ path: "/dayIM" });
+    toDoctorConsultByAsk(mod) {
+      let u = "/doctorConsultByAsk/" + mod;
+      this.$router.push({ path: u });
     }
   }
 };
@@ -119,6 +172,31 @@ export default {
     .iL {
       flex: 3;
       padding-left: 1.875rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      .ft {
+        flex: 2;
+        text-align: center;
+        border-right: 1px solid #e1e1e1;
+        .p1 {
+          color: #333;
+          font-size: 3rem;
+        }
+        .p2 {
+          font-size: 1.625rem;
+        }
+        .up {
+          color: #00ce9e;
+        }
+        .down {
+          color: #999;
+        }
+      }
+      .tt {
+        text-align: center;
+        flex: 3;
+      }
 
       span {
         font-size: 2rem;
@@ -130,13 +208,6 @@ export default {
       padding-right: 1.875rem;
       text-align: right;
       flex: 1;
-      .p1 {
-        color: #408bf1;
-        font-size: 2.25rem;
-      }
-      .p2 {
-        color: #999;
-      }
     }
 
     &:active {

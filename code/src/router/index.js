@@ -28,7 +28,7 @@ export default new Router({
       component: doctorIM
     },
     {
-      path: '/doctorConsultByAsk',
+      path: '/doctorConsultByAsk/:title',
       name: 'doctorConsultByAsk',
       component: doctorConsultByAsk
     },
