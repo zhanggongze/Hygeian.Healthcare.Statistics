@@ -54,9 +54,9 @@ html {
 }
 
 .animated {
-  animation-iteration-count:infinite;
-  -webkit-animation-duration: 1.4s;
-  animation-duration: 1.4s;
+  animation-iteration-count:1;
+  -webkit-animation-duration: 0.5s;
+  animation-duration: 0.5s;
   -webkit-animation-fill-mode: both;
   animation-fill-mode: both;
 }
@@ -93,5 +93,31 @@ html {
     -webkit-animation-name: fadeInDown;
     animation-name: fadeInDown
 }
+
+.fadeIn {
+    -webkit-animation-name: fadeIn;
+    animation-name: fadeIn
+}
+
+@-webkit-keyframes fadeIn {
+    0% {
+        opacity: 0
+    }
+
+    to {
+        opacity: 1
+    }
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0
+    }
+
+    to {
+        opacity: 1
+    }
+}
+
 
 </style>

@@ -8,10 +8,8 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import home from '@/components/home'
-import doctorIM from '@/components/doctorIM'
-import doctorConsultByAsk from '@/components/doctorConsultByAsk'
-import dayConsultByAsk from '@/components/dayConsultByAsk'
-import dayIM from '@/components/dayIM'
+import reportComponent from '@/components/reportComponent'
+import reportPartnerComponent from '@/components/reportPartnerComponent'
 
 Vue.use(Router)
 
@@ -23,24 +21,15 @@ export default new Router({
       component: home
     },
     {
-      path: '/doctorIM',
-      name: 'doctorIM',
-      component: doctorIM
+      path: '/reportComponent/:title',
+      name: 'reportComponent',
+      component: reportComponent
     },
     {
-      path: '/doctorConsultByAsk/:title',
-      name: 'doctorConsultByAsk',
-      component: doctorConsultByAsk
+      path: '/reportPartnerComponent/:title',
+      name: 'reportPartnerComponent',
+      component: reportPartnerComponent
     },
-    {
-      path: '/dayConsultByAsk',
-      name: 'dayConsultByAsk',
-      component: dayConsultByAsk
-    },
-    {
-      path: '/dayIM',
-      name: 'dayIM',
-      component: dayIM
-    },
+   
   ]
 })

@@ -7,79 +7,86 @@
  -->
 <template>
   <section class="container">
-    <div class="itemsList">
-      <div class="item" @click="toDoctorConsultByAsk('新增注册数')">
-        <div class="iL">
-          <div class="ft">
-            <p class="p1">{{yesterdayCreated}}</p>
-            <p class="p2" :class="compare>0 ? 'up' : 'down' ">较前日{{compare}}</p>
-          </div>
-          <div class="tt">
-            <span>新增注册数</span>
-          </div>
-        </div>
-        <div class="iR">
-          <div class="jt"></div>
-        </div>
-      </div>
+    <section v-if="loading">
+      <loading-component></loading-component>
+    </section>
 
-      <div class="item" @click="toDoctorConsultByAsk('新增建档数')">
-        <div class="iL">
-          <div class="ft">
-            <p class="p1">{{hYesterdayCreated}}</p>
-            <p class="p2" :class="hCompare<=0 ? 'down' : 'up' ">较前日{{hCompare}}</p>
+    <section v-if="!loading">
+      <div class="itemsList animated fadeIn">
+        <div class="item" @click="toDoctorConsultByAsk('新增注册数')">
+          <div class="iL">
+            <div class="ft">
+              <p class="p1">{{yesterdayCreated}}</p>
+              <p class="p2" :class="compare>0 ? 'up' : 'down' ">较前日{{compare}}</p>
+            </div>
+            <div class="tt">
+              <span>新增注册数</span>
+            </div>
           </div>
-          <div class="tt">
-            <span>新增建档数</span>
+          <div class="iR">
+            <div class="jt"></div>
           </div>
         </div>
-        <div class="iR">
-          <div class="jt"></div>
-        </div>
-      </div>
 
-      <div class="item" @click="toDoctorConsultByAsk('累计注册数')">
-        <div class="iL">
-          <div class="ft">
-            <p class="p1">{{totalCreated}}</p>
-            <!-- <p class="p2 up">较前日+12</p> -->
+        <div class="item" @click="toPartnerReporter('新增建档数')">
+          <div class="iL">
+            <div class="ft">
+              <p class="p1">{{hYesterdayCreated}}</p>
+              <p class="p2" :class="hCompare<=0 ? 'down' : 'up' ">较前日{{hCompare}}</p>
+            </div>
+            <div class="tt">
+              <span>新增建档数</span>
+            </div>
           </div>
-          <div class="tt">
-            <span>累计注册数</span>
+          <div class="iR">
+            <div class="jt"></div>
           </div>
         </div>
-        <div class="iR">
-          <div class="jt"></div>
-        </div>
-      </div>
 
-      <div class="item" @click="toDoctorConsultByAsk('累计建档数')">
-        <div class="iL">
-          <div class="ft">
-            <p class="p1">{{hTotalCreated}}</p>
-            <!-- <p class="p2 down">较前日-12</p> -->
+        <div class="item" @click="toDoctorConsultByAsk('累计注册数')">
+          <div class="iL">
+            <div class="ft">
+              <p class="p1">{{totalCreated}}</p>
+              <!-- <p class="p2 up">较前日+12</p> -->
+            </div>
+            <div class="tt">
+              <span>累计注册数</span>
+            </div>
           </div>
-          <div class="tt">
-            <span>累计建档数</span>
+          <div class="iR">
+            <div class="jt"></div>
           </div>
         </div>
-        <div class="iR">
-          <div class="jt"></div>
+
+        <div class="item" @click="toPartnerReporter('累计建档数')">
+          <div class="iL">
+            <div class="ft">
+              <p class="p1">{{hTotalCreated}}</p>
+              <!-- <p class="p2 down">较前日-12</p> -->
+            </div>
+            <div class="tt">
+              <span>累计建档数</span>
+            </div>
+          </div>
+          <div class="iR">
+            <div class="jt"></div>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
   </section>
 </template>
 
 <script>
 import axios from "axios";
-import prodEnv from "../../config/dev.env";
+// import loadingComponent from "./loadingComponent";
 
 export default {
   name: "home",
   data() {
     return {
       data: "",
+      loading: false,
       yesterdayCreated: "",
       totalCreated: "",
       theDayFeforeYesterdayCreated: "",
@@ -91,56 +98,41 @@ export default {
       hCompare: ""
     };
   },
-  filters: {
-    evaluatePipe: function(val) {
-      let o = {
-        "0": "",
-        "10": "",
-        "20": "!",
-        "30": "↑",
-        "40": "↓"
-      };
-      return o[val];
-    }
-  },
-  created: function() {},
-  onLoad(options) {},
   mounted() {
     this.api();
   },
   methods: {
     api() {
-      let u = prodEnv.api + "services/report/api/v1/host/yesterdayKPIReport";
-      axios
-        .post(u, {})
-        .then(res => {
-          let item = res.data;
+      this.loading = true;
+      this.$http.post("host/yesterdayKPIReport", {}).then(item => {
+        // 加载动画 防抖
+        setTimeout(() => {
+          this.loading = false;
+        }, 300);
 
-          this.yesterdayCreated = item.customerReport.yesterdayCreated;
-          this.totalCreated = item.customerReport.totalCreated;
-          this.theDayFeforeYesterdayCreated =
-            item.customerReport.theDayFeforeYesterdayCreated;
-          this.compare =
-            this.yesterdayCreated - this.theDayFeforeYesterdayCreated;
+        this.yesterdayCreated = item.customerReport.yesterdayCreated;
+        this.totalCreated = item.customerReport.totalCreated;
+        this.theDayFeforeYesterdayCreated =
+          item.customerReport.theDayFeforeYesterdayCreated;
+        this.compare =
+          this.yesterdayCreated - this.theDayFeforeYesterdayCreated;
 
-          this.hTheDayFeforeYesterdayCreated =
-            item.healthRecordReport.theDayFeforeYesterdayCreated;
-          this.hTotalCreated = item.healthRecordReport.totalCreated;
-          this.hYesterdayCreated = item.healthRecordReport.yesterdayCreated;
-          this.hCompare =
-            this.hYesterdayCreated - this.hTheDayFeforeYesterdayCreated;
-        })
-        .catch(er => {
-          console.log(er);
-        });
-    },
-    aFn() {
-      console.log(123);
+        this.hTheDayFeforeYesterdayCreated =
+          item.healthRecordReport.theDayFeforeYesterdayCreated;
+        this.hTotalCreated = item.healthRecordReport.totalCreated;
+        this.hYesterdayCreated = item.healthRecordReport.yesterdayCreated;
+        this.hCompare =
+          this.hYesterdayCreated - this.hTheDayFeforeYesterdayCreated;
+      });
     },
     toDoctorConsultByAsk(mod) {
-      let u = "/doctorConsultByAsk/" + mod;
+      let u = "/reportComponent/" + mod;
       this.$router.push({ path: u });
-    }
+    },
+    toPartnerReporter(mod) {
+      let u = "/reportPartnerComponent/" + mod;
+      this.$router.push({ path: u });
+    },
   }
 };
 </script>
